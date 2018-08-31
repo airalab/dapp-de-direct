@@ -1,4 +1,4 @@
-# aerostat
+# de-direct
 
 > A Vue.js project
 

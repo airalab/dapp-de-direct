@@ -1,0 +1,14 @@
+export const NETWORK = 1
+export const LIGHTHOUSE = 'airalab.lighthouse.0.robonomics.eth'
+export const IPFS_PUBSUB = 'https://wss.pool.aira.life'
+export const ENS = ''
+export const TOKEN = '0xc34B089D3Dfe7bdf39a7Cd3D64116b2395dba845'
+// export const NETWORK = 42
+// export const LIGHTHOUSE = 'test.lighthouse.0.robonomics.eth'
+// export const IPFS_PUBSUB = 'http://localhost:9999'
+// export const ENS = '0xc5b93d119726fe76141d5db975d1e9a655a735b7'
+// export const TOKEN = '0x7cD78eF8745269d80ab583238496232e2e728a27'
+export const URL_GET_OBJECTIVE = 'https://devjs-01.corp.aira.life:4051/get_objective'
+export const MARKET_MODEL = 'QmWXk8D1Fh5XFJvBodcWbwgyw9htjc6FJg8qi1YYEoPnrg'
+export const TOKEN_SYMBOL = 'UT'
+export const PRICE = 1

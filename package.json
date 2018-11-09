@@ -15,11 +15,12 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
-    "robonomics-js": "^0.2.5",
+    "ipfs": "^0.32.1",
+    "robonomics-js": "^0.3.0",
     "rosbag": "^1.1.0",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1",
-    "vue-web3-check": "^1.0.0",
+    "vue-web3-check": "^1.1.0",
     "vuesax": "^3.1.30",
     "vuetify": "^1.0.19"
   },

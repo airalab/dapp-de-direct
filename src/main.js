@@ -3,6 +3,7 @@
 import 'babel-polyfill'
 import Vue from 'vue'
 import Vuetify from 'vuetify'
+import colors from 'vuetify/es5/util/colors'
 import * as Web3Check from 'vue-web3-check'
 import App from './App'
 import router from './router'
@@ -10,7 +11,11 @@ import router from './router'
 import 'vuetify/dist/vuetify.min.css'
 
 Vue.config.productionTip = false
-Vue.use(Vuetify)
+Vue.use(Vuetify, {
+  theme: {
+    warning: colors.deepOrange.darken3
+  }
+})
 Vue.use(Web3Check)
 
 /* eslint-disable no-new */

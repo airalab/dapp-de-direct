@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Page from '@/components/Page'
+import Info from '@/components/Info'
+import Check from '@/components/Check'
 
 Vue.use(Router)
 
@@ -8,8 +9,13 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'Page',
-      component: Page
+      name: 'info',
+      component: Info
+    },
+    {
+      path: '/check',
+      name: 'check',
+      component: Check
     }
   ]
 })

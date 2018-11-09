@@ -5,9 +5,18 @@
         <v-flex md12>
           <v-card>
             <v-card-title primary-title>
-              <div>
-                <h3 class="headline mb-0">Drone registration</h3>
-              </div>
+              <v-container grid-list-md>
+                <v-layout row wrap>
+                  <v-flex md10>
+                    <h3 class="headline mb-0">Drone registration</h3>
+                  </v-flex>
+                  <v-flex md2 class="text-xs-right">
+                    <v-btn to="check" color="warning">
+                      Check
+                    </v-btn>
+                  </v-flex>
+                </v-layout>
+              </v-container>
             </v-card-title>
             <v-card-text>
               <v-container grid-list-md>
@@ -26,6 +35,18 @@
                         label="ID drone"
                         required
                       ></v-text-field>
+                      <v-checkbox
+                        v-model="checkbox"
+                        :rules="[v => !!v || 'You must agree to continue!']"
+                        required
+                      >
+                        <div slot="label">
+                          You agree to our
+                          <a href="static/ToS_-_Decentralized_Technology_(draft).doc" target="_blank">Terms of service</a>
+                          and
+                          <a href="static/Privacy_Policy_Decentralized_Technology_v.3_(draft).docx" target="_blank">Privacy Policy</a>
+                        </div>
+                      </v-checkbox>
                     </v-form>
                   </v-flex>
                 </v-layout>
@@ -47,7 +68,7 @@
                 v-if="approveTrade.value < price.value"
                 :loading="loadingApprove"
                 :disabled="loadingApprove || balance.value < price.value"
-                color="primary"
+                color="warning"
                 @click.native="sendApproveTrade"
               >
                 Approve
@@ -56,7 +77,7 @@
                 v-if="approveTrade.value >= price.value"
                 :loading="loadingOrder"
                 :disabled="loadingOrder || balance.value < price.value || !valid"
-                color="primary"
+                color="warning"
                 @click.native="order"
               >
                 Order
@@ -125,6 +146,7 @@ export default {
       valid: false,
       email: '',
       idDrone: '',
+      checkbox: false,
       emailRules: [
         v => !!v || 'E-mail is required',
         v => /.+@.+/.test(v) || 'E-mail must be valid'
@@ -144,13 +166,13 @@ export default {
           console.log('xrt', robonomics.xrt.address)
           console.log('factory', robonomics.factory.address)
           console.log('lighthouse', robonomics.lighthouse.address)
-          robonomics.getAsk(this.market, (msg) => {
-            console.log('ask', msg)
+          robonomics.getDemand(this.market, (msg) => {
+            console.log('demand', msg)
             // emulator kfc
             // return this.emulatorKfc(msg)
           })
-          robonomics.getBid(this.market, (msg) => {
-            console.log('bid', msg)
+          robonomics.getOffer(this.market, (msg) => {
+            console.log('offer', msg)
           })
           robonomics.getResult((msg) => {
             console.log('result unverified', msg)
@@ -162,30 +184,32 @@ export default {
     })
   },
   methods: {
-    emulatorKfc (ask) {
-      const bid = {
-        objective: ask.objective,
-        token: ask.token,
-        cost: ask.cost,
-        lighthouseFee: 0,
-        deadline: ask.deadline
-      }
-      return robonomics.postBid(this.market, bid)
-        .then((liability) => {
-          console.log('liability bid', liability.address)
-          return robonomics.postResult({ liability: liability.address, result: 'QmSt69qQqGka1qwRRHbdmAWk4nCbsV1mqJwd8cWbEyhf1M' })
-        })
-        .then(() => {
-          console.log('result send msg')
-        })
-    },
+    // emulatorKfc (demand) {
+    //   const offer = {
+    //     objective: demand.objective,
+    //     token: demand.token,
+    //     cost: demand.cost,
+    //     validator: demand.validator,
+    //     lighthouse: demand.lighthouse,
+    //     lighthouseFee: 0,
+    //     deadline: demand.deadline
+    //   }
+    //   return robonomics.postOffer(this.market, offer)
+    //     .then((liability) => {
+    //       console.log('liability offer', liability.address)
+    //       return robonomics.postResult({ liability: liability.address, success: true, result: 'QmQU8UuWAHQev3BYSYirk6shgZrBGEq87DTyxDVYvsywtt' })
+    //     })
+    //     .then(() => {
+    //       console.log('result send msg')
+    //     })
+    // },
     fetchData () {
-      return this.token.call('balanceOf', [web3.eth.accounts[0]])
+      return this.token.call('balanceOf', [robonomics.account])
         .then((balanceOf) => {
           this.balance.value = balanceOf
           this.balance.valueStr = `${formatDecimals(balanceOf, 0)} ${config.TOKEN_SYMBOL}`
           if (balanceOf > 0) {
-            return this.token.call('allowance', [web3.eth.accounts[0], robonomics.factory.address])
+            return this.token.call('allowance', [robonomics.account, robonomics.factory.address])
           }
           return false
         })
@@ -205,7 +229,7 @@ export default {
     },
     sendApproveTrade () {
       this.loadingApprove = true
-      return this.token.send('approve', [robonomics.factory.address, this.price.value * 100], { from: web3.eth.accounts[0] })
+      return this.token.send('approve', [robonomics.factory.address, this.price.value * 100], { from: robonomics.account })
         .then((r) => {
           this.approveTrade.disabled = true
           this.approveTrade.text = '...'
@@ -221,6 +245,7 @@ export default {
         })
     },
     getObjective () {
+      // return Promise.resolve('QmQU8UuWAHQev3BYSYirk6shgZrBGEq87DTyxDVYvsywtt')
       const payload = {
         email: this.email,
         droneid: this.idDrone
@@ -251,12 +276,11 @@ export default {
       }
     },
     newLiability (liability) {
-      console.log('liability ask', liability.address)
+      console.log('liability demand', liability.address)
       return liability.getInfo()
         .then((info) => {
           this.liability = {
             address: liability.address,
-            lighthouse: liability.lighthouse,
             worker: liability.worker,
             ...info,
             resultMessage: []
@@ -267,6 +291,12 @@ export default {
           })
           return true
         })
+        .catch((e) => {
+          console.log(e)
+          setTimeout(() => {
+            this.newLiability(liability)
+          }, 2000)
+        })
     },
     order () {
       if (this.$refs.form.validate() && this.price.value > 0) {
@@ -275,15 +305,16 @@ export default {
         return this.getObjective()
           .then((objective) => {
             web3.eth.getBlock('latest', (e, r) => {
-              const ask = {
+              const demand = {
                 objective,
                 token: this.token.address,
                 cost: this.price.value,
+                lighthouse: robonomics.lighthouse.address,
                 validator: '0x0000000000000000000000000000000000000000',
                 validatorFee: 0,
                 deadline: r.number + 1000
               }
-              robonomics.postAsk(this.market, ask)
+              robonomics.postDemand(this.market, demand)
                 .then((liability) => this.newLiability(liability))
                 .then(() => {
                   this.loadingOrder = false

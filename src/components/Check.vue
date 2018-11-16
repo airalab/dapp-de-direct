@@ -24,14 +24,14 @@
                   <v-flex md12>
                     <v-form ref="form" v-model="valid" lazy-validation>
                       <v-text-field
-                        v-model="idDrone"
-                        :rules="idDroneRules"
-                        label="ID drone"
+                        v-model="id_serial"
+                        :rules="requireRule"
+                        label="Serial number of the aircraft"
                         required
                       ></v-text-field>
                       <v-text-field
                         v-model="liability"
-                        :rules="liabilityRules"
+                        :rules="requireRule"
                         label="Liability address"
                         required
                       ></v-text-field>
@@ -74,12 +74,9 @@ export default {
       loadingCheck: false,
       valid: false,
       liability: '',
-      idDrone: '',
-      liabilityRules: [
-        v => !!v || 'Address liability is required'
-      ],
-      idDroneRules: [
-        v => !!v || 'Id drone is required'
+      id_serial: '',
+      requireRule: [
+        v => !!v || 'Field required'
       ]
     }
   },
@@ -95,9 +92,9 @@ export default {
         const liability = new Liability(robonomics.web3, this.liability, this.liability)
         liability.getInfo()
           .then((r) => {
-            this.submit = true
-            const regex = new RegExp(this.idDrone)
-            ipfsBagCat(r.result, { topics: ['/agent/result/droneid'] }, (bag) => {
+            const regex = new RegExp(this.id_serial)
+            ipfsBagCat(r.result, { topics: ['/agent/result/id_serial'] }, (bag) => {
+              this.submit = true
               if (bag.data.match(regex)) {
                 this.isCheck = true
               }

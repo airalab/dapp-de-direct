@@ -22,32 +22,7 @@
               <v-container grid-list-md>
                 <v-layout row wrap>
                   <v-flex md12>
-                    <v-form ref="form" v-model="valid" lazy-validation>
-                      <v-text-field
-                        v-model="email"
-                        :rules="emailRules"
-                        label="E-mail"
-                        required
-                      ></v-text-field>
-                      <v-text-field
-                        v-model="idDrone"
-                        :rules="idDroneRules"
-                        label="ID drone"
-                        required
-                      ></v-text-field>
-                      <v-checkbox
-                        v-model="checkbox"
-                        :rules="[v => !!v || 'You must agree to continue!']"
-                        required
-                      >
-                        <div slot="label">
-                          You agree to our
-                          <a href="static/ToS_-_Decentralized_Technology_(draft).doc" target="_blank">Terms of service</a>
-                          and
-                          <a href="static/Privacy_Policy_Decentralized_Technology_v.3_(draft).docx" target="_blank">Privacy Policy</a>
-                        </div>
-                      </v-checkbox>
-                    </v-form>
+                    <RegForm ref="regForm" />
                   </v-flex>
                 </v-layout>
               </v-container>
@@ -76,7 +51,7 @@
               <v-btn
                 v-if="approveTrade.value >= price.value"
                 :loading="loadingOrder"
-                :disabled="loadingOrder || balance.value < price.value || !valid"
+                :disabled="loadingOrder || balance.value < price.value || !$refs.regForm.valid"
                 color="warning"
                 @click.native="order"
               >
@@ -110,6 +85,7 @@ import getRobonomics from '../utils/robonomics'
 import { formatDecimals, watchTx } from '../utils/utils'
 import ipfsBagCat from '../utils/ipfs'
 import Liability from './Liability'
+import RegForm from './RegForm'
 import * as config from '../config'
 
 let robonomics
@@ -117,7 +93,8 @@ let robonomics
 export default {
   name: 'info',
   components: {
-    Liability
+    Liability,
+    RegForm
   },
   data () {
     return {
@@ -141,19 +118,7 @@ export default {
       },
       market: config.MARKET_MODEL,
       lighthouseName: config.LIGHTHOUSE,
-      liability: null,
-
-      valid: false,
-      email: '',
-      idDrone: '',
-      checkbox: false,
-      emailRules: [
-        v => !!v || 'E-mail is required',
-        v => /.+@.+/.test(v) || 'E-mail must be valid'
-      ],
-      idDroneRules: [
-        v => !!v || 'Id drone is required'
-      ]
+      liability: null
     }
   },
   created () {
@@ -169,7 +134,7 @@ export default {
           robonomics.getDemand(this.market, (msg) => {
             console.log('demand', msg)
             // emulator kfc
-            // return this.emulatorKfc(msg)
+            return this.emulatorKfc(msg)
           })
           robonomics.getOffer(this.market, (msg) => {
             console.log('offer', msg)
@@ -184,25 +149,28 @@ export default {
     })
   },
   methods: {
-    // emulatorKfc (demand) {
-    //   const offer = {
-    //     objective: demand.objective,
-    //     token: demand.token,
-    //     cost: demand.cost,
-    //     validator: demand.validator,
-    //     lighthouse: demand.lighthouse,
-    //     lighthouseFee: 0,
-    //     deadline: demand.deadline
-    //   }
-    //   return robonomics.postOffer(this.market, offer)
-    //     .then((liability) => {
-    //       console.log('liability offer', liability.address)
-    //       return robonomics.postResult({ liability: liability.address, success: true, result: 'QmQU8UuWAHQev3BYSYirk6shgZrBGEq87DTyxDVYvsywtt' })
-    //     })
-    //     .then(() => {
-    //       console.log('result send msg')
-    //     })
-    // },
+    emulatorKfc (demand) {
+      let liability
+      const offer = {
+        objective: demand.objective,
+        token: demand.token,
+        cost: demand.cost,
+        validator: demand.validator,
+        lighthouse: demand.lighthouse,
+        lighthouseFee: 0,
+        deadline: demand.deadline
+      }
+      return robonomics.postOffer(this.market, offer)
+        .then((r) => {
+          liability = r
+          console.log('liability offer', liability.address)
+          return this.getResult(liability.address)
+        })
+        .then((r) => robonomics.postResult({ liability: liability.address, success: true, result: r }))
+        .then(() => {
+          console.log('result send msg')
+        })
+    },
     fetchData () {
       return this.token.call('balanceOf', [robonomics.account])
         .then((balanceOf) => {
@@ -244,12 +212,43 @@ export default {
           this.loadingApprove = false
         })
     },
-    getObjective () {
-      // return Promise.resolve('QmQU8UuWAHQev3BYSYirk6shgZrBGEq87DTyxDVYvsywtt')
+    getResult (address) {
       const payload = {
-        email: this.email,
-        droneid: this.idDrone
+        address,
+        id_serial: this.$refs.regForm.id_serial,
+        email: this.$refs.regForm.email,
+        drone_type: this.$refs.regForm.drone_type,
+        drone_make: this.$refs.regForm.drone_make,
+        drone_model: this.$refs.regForm.drone_model,
+        id_reg: this.$refs.regForm.id_reg,
+        pilot_name: this.$refs.regForm.pilot_name,
+        pilot_reg: this.$refs.regForm.pilot_reg
       }
+      return axios.post('http://localhost:3004/get_result', JSON.stringify(payload), {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+        .then((r) => {
+          if (r.data.objective) {
+            return r.data.objective
+          }
+          return false
+        })
+    },
+    getObjective () {
+      const payload = {
+        id_serial: this.$refs.regForm.id_serial,
+        email: this.$refs.regForm.email,
+        drone_type: this.$refs.regForm.drone_type,
+        drone_make: this.$refs.regForm.drone_make,
+        drone_model: this.$refs.regForm.drone_model,
+        id_reg: this.$refs.regForm.id_reg,
+        pilot_name: this.$refs.regForm.pilot_name,
+        pilot_reg: this.$refs.regForm.pilot_reg
+      }
+      // console.log(payload)
+      // return Promise.resolve('QmQU8UuWAHQev3BYSYirk6shgZrBGEq87DTyxDVYvsywtt')
       return axios.post(config.URL_GET_OBJECTIVE, JSON.stringify(payload), {
         headers: {
           'Content-Type': 'application/json'
@@ -257,6 +256,10 @@ export default {
       })
         .then((r) => {
           if (r.data.objective) {
+            // console.log(r.data.objective)
+            // ipfsBagCat(r.data.objective, {}, (bag) => {
+            //   console.log(bag.data)
+            // })
             return r.data.objective
           }
           return false
@@ -299,7 +302,7 @@ export default {
         })
     },
     order () {
-      if (this.$refs.form.validate() && this.price.value > 0) {
+      if (this.$refs.regForm.$refs.form.validate() && this.price.value > 0) {
         this.liability = null
         this.loadingOrder = true
         return this.getObjective()

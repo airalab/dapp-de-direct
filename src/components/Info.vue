@@ -134,7 +134,7 @@ export default {
           robonomics.getDemand(this.market, (msg) => {
             console.log('demand', msg)
             // emulator kfc
-            return this.emulatorKfc(msg)
+            // return this.emulatorKfc(msg)
           })
           robonomics.getOffer(this.market, (msg) => {
             console.log('offer', msg)

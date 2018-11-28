@@ -89,16 +89,24 @@ export default {
   methods: {
     check () {
       if (this.$refs.form.validate()) {
+        this.loadingCheck = true
         const liability = new Liability(robonomics.web3, this.liability, this.liability)
         liability.getInfo()
           .then((r) => {
-            const regex = new RegExp(this.id_serial)
-            ipfsBagCat(r.result, { topics: ['/agent/result/id_serial'] }, (bag) => {
+            if (r.result !== '') {
+              const regex = new RegExp(this.id_serial)
+              ipfsBagCat(r.result, { topics: ['/agent/result/id_serial'] }, (bag) => {
+                this.submit = true
+                this.loadingCheck = false
+                if (bag.data.match(regex)) {
+                  this.isCheck = true
+                }
+              })
+            } else {
               this.submit = true
-              if (bag.data.match(regex)) {
-                this.isCheck = true
-              }
-            })
+              this.loadingCheck = false
+              this.isCheck = false
+            }
           })
       }
     }

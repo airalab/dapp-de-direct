@@ -27,7 +27,7 @@
                 </v-layout>
               </v-container>
               <v-divider />
-              <v-container grid-list-md>
+              <v-container v-if="price.value > 0" grid-list-md>
                 <v-layout row wrap>
                   <v-flex md12>
                     <div>
@@ -51,7 +51,7 @@
               <v-btn
                 v-if="approveTrade.value >= price.value"
                 :loading="loadingOrder"
-                :disabled="loadingOrder || balance.value < price.value || !$refs.regForm.valid"
+                :disabled="loadingOrder || balance.value < price.value"
                 color="warning"
                 @click.native="order"
               >
@@ -302,7 +302,7 @@ export default {
         })
     },
     order () {
-      if (this.$refs.regForm.$refs.form.validate() && this.price.value > 0) {
+      if (this.$refs.regForm.$refs.form.validate()) {
         this.liability = null
         this.loadingOrder = true
         return this.getObjective()

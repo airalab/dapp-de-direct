@@ -18,4 +18,4 @@ export const URL_GET_OBJECTIVE = 'https://devjs-01.corp.aira.life:3016/get_objec
 
 export const MARKET_MODEL = 'QmWXk8D1Fh5XFJvBodcWbwgyw9htjc6FJg8qi1YYEoPnrg'
 export const TOKEN_SYMBOL = 'UT'
-export const PRICE = 1
+export const PRICE = 0

@@ -1,8 +1,8 @@
 <template>
   <div>
     <v-container grid-list-md>
-      <v-layout row wrap>
-        <v-flex md12>
+      <v-layout justify-center row wrap>
+        <v-flex sm12 md10 lg6>
           <v-card>
             <v-card-title primary-title>
               <v-container grid-list-md>
@@ -61,8 +61,8 @@
           </v-card>
         </v-flex>
 
-        <v-flex md12>
-          <v-card v-if="liability">
+        <v-flex sm12 md10 lg6 v-if="liability">
+          <v-card>
             <v-card-title primary-title>
               <div>
                 <h3 class="headline mb-0">Result</h3>

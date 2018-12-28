@@ -1,16 +1,16 @@
 <template>
   <div>
     <v-container grid-list-md>
-      <v-layout row wrap>
-        <v-flex md12>
+      <v-layout justify-center row wrap>
+        <v-flex sm12 md10 lg6>
           <v-card>
             <v-card-title primary-title>
               <v-container grid-list-md>
                 <v-layout row wrap>
-                  <v-flex md10>
-                    <h3 class="headline mb-0">Check</h3>
+                  <v-flex md9>
+                    <h3 class="headline mb-0">Check registration</h3>
                   </v-flex>
-                  <v-flex md2 class="text-xs-right">
+                  <v-flex md3 class="text-xs-right">
                     <v-btn to="/" color="info">
                       Registration
                     </v-btn>
